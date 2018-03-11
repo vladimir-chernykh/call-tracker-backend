@@ -14,8 +14,9 @@ func run() {
 	r := mux.NewRouter()
 
 	r.Handle("/api/v1/phones/{phone}", stubUploadAudioHandler())
+	// Get port to listen from env
 	srv := &http.Server{
-		Addr:    ":8080",
+		Addr:    ":80",
 		Handler: r,
 	}
 
