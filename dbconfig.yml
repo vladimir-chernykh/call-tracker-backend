@@ -1,0 +1,5 @@
+development:
+    dialect: postgres
+    datasource: dbname=call_tracker sslmode=disable user=backend
+    dir: db/migrations
+    table: migrations
