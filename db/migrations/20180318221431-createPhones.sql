@@ -2,7 +2,7 @@
 -- +migrate Up
 CREATE TABLE phones(
   id serial PRIMARY KEY,
-  phone varchar(16) NOT NULL,
+  number varchar(16) NOT NULL UNIQUE,
   created_at timestamp NOT NULL,
   updated_at timestamp NOT NULL
 );
