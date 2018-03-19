@@ -35,15 +35,3 @@ func run() {
 		fmt.Println(err)
 	}
 }
-
-func stubUploadAudioHandler() http.Handler {
-	return http.HandlerFunc(func(rw http.ResponseWriter, rr *http.Request) {
-		vars := mux.Vars(rr)
-		if vars["phone"] == "+79161298967" {
-			rw.WriteHeader(http.StatusUnprocessableEntity)
-		} else {
-			rw.WriteHeader(http.StatusCreated)
-		}
-
-	})
-}
