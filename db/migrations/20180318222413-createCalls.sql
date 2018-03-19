@@ -9,4 +9,4 @@ CREATE TABLE calls(
 );
 
 -- +migrate Down
-DROP TABLE phones;
+DROP TABLE calls;
