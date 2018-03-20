@@ -15,7 +15,7 @@ func main() {
 
 func run() {
 	var DB *sql.DB
-	DB, err := sql.Open("postgres", "user=backend dbname=call_tracker sslmode=disable")
+	DB, err := sql.Open("postgres", "host=172.17.0.1 user=backend dbname=call_tracker sslmode=disable")
 	if err != nil {
 		panic(err)
 	}
