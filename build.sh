@@ -1,0 +1,1 @@
+docker build -t call-tracker-backend .
