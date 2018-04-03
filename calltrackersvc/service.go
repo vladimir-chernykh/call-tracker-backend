@@ -11,6 +11,7 @@ import (
 	"github.com/vladimir-chernykh/call-tracker-backend/calltracker"
 	"database/sql"
 	"github.com/vladimir-chernykh/call-tracker-backend/postgres"
+	"encoding/json"
 )
 
 func ReceiveFileHandler(DB *sql.DB) http.Handler {
@@ -41,7 +42,9 @@ func ReceiveFileHandler(DB *sql.DB) http.Handler {
 		}
 		fmt.Println("ID: ", id)
 		Buf.Reset()
+		rw.Header().Set("Content-Type", "application/json")
 		rw.WriteHeader(http.StatusCreated)
+		json.NewEncoder(rw).Encode(map[string]int64{"id": *id})
 		return
 	})
 }
