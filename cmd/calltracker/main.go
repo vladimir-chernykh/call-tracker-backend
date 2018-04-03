@@ -24,6 +24,7 @@ func run() {
 	r := mux.NewRouter()
 
 	r.Handle("/api/v1/phones/{phone}", calltrackersvc.ReceiveFileHandler(DB))
+	r.Handle("/api/v1/calls/{call}", calltrackersvc.GetCallResultsStub(DB))
 	// Get port to listen from env
 	srv := &http.Server{
 		Addr:    ":80",

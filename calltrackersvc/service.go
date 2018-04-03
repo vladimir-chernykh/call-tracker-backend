@@ -48,3 +48,35 @@ func ReceiveFileHandler(DB *sql.DB) http.Handler {
 		return
 	})
 }
+
+func GetCallResultsStub(DB *sql.DB) http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, rr *http.Request) {
+		vars := mux.Vars(rr)
+
+		if vars["call"] == "10" {
+			rw.Header().Set("Content-Type", "application/json")
+			rw.WriteHeader(http.StatusOK)
+			rw.Write([]byte("{\"stt\":{\"text\":\"Пусть просто такую информацию легче записать голосом чем писать текстом\"},\"duration\":{\"duration\":4.56}}"))
+			return
+		}
+
+		if vars["call"] == "11" {
+			rw.Header().Set("Content-Type", "application/json")
+			rw.WriteHeader(http.StatusOK)
+			rw.Write([]byte("{\"stt\":{\"text\":\"Пусть просто такую информацию легче записать голосом чем писать текстом\"}}"))
+			return
+		}
+
+		if vars["call"] == "12" {
+			rw.Header().Set("Content-Type", "application/json")
+			rw.WriteHeader(http.StatusOK)
+			rw.Write([]byte("{\"duration\":{\"duration\":4.56}}"))
+			return
+		}
+
+		rw.Header().Set("Content-Type", "application/json")
+		rw.WriteHeader(http.StatusNotFound)
+
+		return
+	})
+}
