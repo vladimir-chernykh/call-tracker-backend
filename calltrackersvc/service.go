@@ -75,6 +75,7 @@ func GetCallResultsStub(DB *sql.DB) http.Handler {
 		}
 
 		rw.Header().Set("Content-Type", "application/json")
+		rw.Write([]byte("{}"))
 		rw.WriteHeader(http.StatusNotFound)
 
 		return
