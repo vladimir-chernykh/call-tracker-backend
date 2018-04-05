@@ -19,3 +19,11 @@ type CallStorage interface {
 	Save(c *Call) (*int64, error)
 	Dump(c *Call) (*string, error)
 }
+
+type AudioService interface {
+	Process(*Call) (*Call, error)
+	Convert(*Call) (*Call, error)
+	Send(*Call) (string, error)
+	GetDuration() (string, error)
+	GetSTT() (string, error)
+}
