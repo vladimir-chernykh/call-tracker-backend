@@ -39,3 +39,13 @@ func TestConvert(t *testing.T) {
 	}
 
 }
+
+func TestSend(t *testing.T) {
+	converter := audiosvc.AudioService{}
+	res, err := converter.Send("f.wav")
+	if err != nil {
+		panic(err)
+	}
+
+	assert.True(t, len(*res) >= 0)
+}
