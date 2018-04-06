@@ -95,3 +95,29 @@ func (s *Storage) Dump(c *calltracker.Call) (*string, error) {
 
 	return &aacFilename, nil
 }
+
+func (s *Storage) SaveMetric(m *calltracker.Metric) (error) {
+	tx, err := s.DB.Begin()
+	defer func() {
+		err := tx.Commit()
+		if err != nil {
+			panic(err)
+		}
+	}()
+
+	if err != nil {
+		panic(err)
+	}
+
+	_, qErr := tx.Query(`
+INSERT INTO metrics (name, call_id, data, remote_id, created_at, updated_at)
+VALUES ($1, $2, $3, $4, NOW(), NOW())
+ON CONFLICT (name, call_id) DO UPDATE SET updated_at = NOW(), data = $3
+RETURNING id;
+`, m.Name, m.Call.Id, m.Data, m.Call.RemoteId)
+	if qErr != nil {
+		panic(qErr)
+	}
+
+	return nil
+}
