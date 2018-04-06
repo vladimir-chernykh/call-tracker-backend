@@ -10,10 +10,12 @@ import (
 	"os"
 	"io"
 	"encoding/json"
+	"net/url"
+	"io/ioutil"
 )
 
 type AudioService struct {
-	storage calltracker.CallStorage
+	Storage calltracker.CallStorage
 }
 
 type sendResponse struct {
@@ -28,23 +30,23 @@ func New(storage calltracker.CallStorage) calltracker.AudioService {
 	return &AudioService{storage}
 }
 
-func (c *AudioService) Process(aac *calltracker.Call) (*calltracker.Call, error) {
+func (c *AudioService) Process(call *calltracker.Call) (error) {
 
-	aacFile, err := c.storage.Dump(aac)
+	aacFile, err := c.Storage.Dump(call)
 	if err != nil {
 		panic(err)
 	}
 
 	wavFile, err := c.Convert(*aacFile)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
-	remoteId, sErr := c.Send(*wavFile)
-	if sErr != nil {
-		return nil, sErr
+	remoteId, err := c.Send(*wavFile)
+	if err != nil {
+		panic(err)
 	}
-	aac.RemoteId = *remoteId
+	call.RemoteId = *remoteId
 
 	cmd := exec.Command("rm", *aacFile, *wavFile)
 	var out bytes.Buffer
@@ -54,10 +56,10 @@ func (c *AudioService) Process(aac *calltracker.Call) (*calltracker.Call, error)
 		panic(rErr)
 	}
 
-	go c.GetDuration()
-	go c.GetSTT()
+	go c.GetDuration(*call)
+	go c.GetSTT(*call)
 
-	return nil, nil
+	return nil
 }
 
 func (c *AudioService) Convert(aacFile string) (*string, error) {
@@ -109,10 +111,33 @@ func (c *AudioService) Send(wav string) (*string, error) {
 	return &data.Result.ContentId, nil
 }
 
-func (c *AudioService) GetDuration() (string, error) {
-	return "", nil
+func (c *AudioService) GetDuration(call calltracker.Call) (error) {
+	err := c.getMetric("duration", call.RemoteId, call)
+	if err != nil {
+		panic(err)
+	}
+	return nil
 }
 
-func (c *AudioService) GetSTT() (string, error) {
-	return "", nil
+func (c *AudioService) GetSTT(call calltracker.Call) (error) {
+	err := c.getMetric("stt", call.RemoteId, call)
+	if err != nil {
+		panic(err)
+	}
+	return nil
+}
+
+func (c *AudioService) getMetric(name string, remoteId string, call calltracker.Call) (error) {
+	res, err := http.PostForm("http://64.58.125.108:3000/"+name, url.Values{"content_id": {remoteId}})
+	if err != nil {
+		panic(err)
+	}
+	defer res.Body.Close()
+
+	body, err := ioutil.ReadAll(res.Body)
+
+	m := calltracker.Metric{Name: name, Call: call, Data: body}
+	c.Storage.SaveMetric(&m)
+
+	return nil
 }

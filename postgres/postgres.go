@@ -98,6 +98,10 @@ func (s *Storage) Dump(c *calltracker.Call) (*string, error) {
 
 func (s *Storage) SaveMetric(m *calltracker.Metric) (error) {
 	tx, err := s.DB.Begin()
+	if err != nil {
+		panic(err)
+	}
+
 	defer func() {
 		err := tx.Commit()
 		if err != nil {
@@ -105,19 +109,16 @@ func (s *Storage) SaveMetric(m *calltracker.Metric) (error) {
 		}
 	}()
 
-	if err != nil {
-		panic(err)
-	}
-
-	_, qErr := tx.Query(`
-INSERT INTO metrics (name, call_id, data, remote_id, created_at, updated_at)
+	rs, qErr := tx.Query(`
+INSERT INTO metrics (name, call, data, remote_id, created_at, updated_at)
 VALUES ($1, $2, $3, $4, NOW(), NOW())
-ON CONFLICT (name, call_id) DO UPDATE SET updated_at = NOW(), data = $3
+ON CONFLICT (name, call) DO UPDATE SET updated_at = NOW(), data = $3
 RETURNING id;
 `, m.Name, m.Call.Id, m.Data, m.Call.RemoteId)
 	if qErr != nil {
 		panic(qErr)
 	}
+	rs.Close()
 
 	return nil
 }
