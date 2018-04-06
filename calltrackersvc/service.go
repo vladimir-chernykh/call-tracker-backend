@@ -3,14 +3,13 @@ package calltrackersvc
 import (
 	"net/http"
 	"bytes"
-	"strings"
-	"fmt"
 	"io"
 
 	"github.com/gorilla/mux"
 	"github.com/vladimir-chernykh/call-tracker-backend/calltracker"
 	"database/sql"
 	"github.com/vladimir-chernykh/call-tracker-backend/postgres"
+	"github.com/vladimir-chernykh/call-tracker-backend/audiosvc"
 	"encoding/json"
 )
 
@@ -19,13 +18,11 @@ func ReceiveFileHandler(DB *sql.DB) http.Handler {
 		vars := mux.Vars(rr)
 
 		var Buf bytes.Buffer
-		file, header, err := rr.FormFile("audio")
+		file, _, err := rr.FormFile("audio")
 		if err != nil {
 			panic(err)
 		}
 		defer file.Close()
-		name := strings.Split(header.Filename, ".")
-		fmt.Printf("File name %s\n", name[0])
 
 		io.Copy(&Buf, file)
 
@@ -33,14 +30,17 @@ func ReceiveFileHandler(DB *sql.DB) http.Handler {
 		a := calltracker.Audio{Buffer: Buf.Bytes()}
 		c := calltracker.Call{Phone: p, Audio: a}
 
-		s := postgres.CallService{DB}
+		s := postgres.New(DB)
 		id, err := s.Save(&c)
 		if err != nil {
 			panic(err)
 			rw.WriteHeader(http.StatusUnprocessableEntity)
 			return
 		}
-		fmt.Println("ID: ", id)
+
+		asvc := audiosvc.New(s)
+		go asvc.Process(&c)
+
 		Buf.Reset()
 		rw.Header().Set("Content-Type", "application/json")
 		rw.WriteHeader(http.StatusCreated)

@@ -1,2 +1,4 @@
 .idea
 main
+postgres/*.aac
+audiosvc/*.aac

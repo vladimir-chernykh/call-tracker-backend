@@ -5,13 +5,22 @@ import (
 	"database/sql"
 	log "github.com/sirupsen/logrus"
 	"github.com/vladimir-chernykh/call-tracker-backend/calltracker"
+	"strconv"
+	"time"
+	"io/ioutil"
+	"fmt"
 )
 
-type CallService struct {
+type Storage struct {
 	DB *sql.DB
 }
 
-func (s *CallService) Save(c *calltracker.Call) (*int64, error) {
+func New(db *sql.DB) calltracker.CallStorage {
+	return &Storage{DB: db}
+}
+
+func (s *Storage) Save(c *calltracker.Call) (*int64, error) {
+	log.Info("Save", c.Phone)
 	tx, err := s.DB.Begin()
 	defer func() {
 		err := tx.Commit()
@@ -61,4 +70,58 @@ RETURNING id;
 	}
 
 	return &c.Id, nil
+}
+
+func (s *Storage) Dump(c *calltracker.Call) (*string, error) {
+	log.Info("Save", c.Phone, c.Id)
+	aacFilename := strconv.FormatInt(time.Now().UnixNano(), 10) + ".aac"
+
+	rows, err := s.DB.Query("SELECT record FROM calls WHERE id = $1", c.Id)
+	if err != nil {
+		fmt.Println(err)
+		panic(err)
+	}
+	defer rows.Close()
+	var record []byte
+	rows.Next()
+	if err := rows.Scan(&record); err != nil {
+		panic(err)
+	}
+	if err := rows.Err(); err != nil {
+		panic(err)
+	}
+	wErr := ioutil.WriteFile(aacFilename, record, 0644)
+	if wErr != nil {
+		panic(wErr)
+	}
+
+	return &aacFilename, nil
+}
+
+func (s *Storage) SaveMetric(m *calltracker.Metric) (error) {
+	log.Info("SaveMetric", m.Call.Phone, m.Call.Id, m.Data)
+	tx, err := s.DB.Begin()
+	if err != nil {
+		panic(err)
+	}
+
+	defer func() {
+		err := tx.Commit()
+		if err != nil {
+			panic(err)
+		}
+	}()
+
+	rs, qErr := tx.Query(`
+INSERT INTO metrics (name, call, data, remote_id, created_at, updated_at)
+VALUES ($1, $2, $3, $4, NOW(), NOW())
+ON CONFLICT (name, call) DO UPDATE SET updated_at = NOW(), data = $3
+RETURNING id;
+`, m.Name, m.Call.Id, m.Data, m.Call.RemoteId)
+	if qErr != nil {
+		panic(qErr)
+	}
+	rs.Close()
+
+	return nil
 }

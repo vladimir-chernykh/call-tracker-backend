@@ -10,11 +10,29 @@ type Audio struct {
 }
 
 type Call struct {
-	Id    int64
-	Phone Phone
-	Audio Audio
+	Id       int64
+	Phone    Phone
+	Audio    Audio
+	RemoteId string
 }
 
-type CallService interface {
-	Save(c *Call) (int, error)
+type Metric struct {
+	Id   int64
+	Name string
+	Call Call
+	Data []byte
+}
+
+type CallStorage interface {
+	Save(c *Call) (*int64, error)
+	Dump(c *Call) (*string, error)
+	SaveMetric(m *Metric) (error)
+}
+
+type AudioService interface {
+	Process(*Call) (error)
+	Convert(string) (*string, error)
+	Send(string) (*string, error)
+	GetDuration(Call) (error)
+	GetSTT(Call) (error)
 }
