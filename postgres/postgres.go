@@ -11,15 +11,15 @@ import (
 	"fmt"
 )
 
-type storage struct {
+type Storage struct {
 	DB *sql.DB
 }
 
 func New(db *sql.DB) calltracker.CallStorage {
-	return &storage{DB: db}
+	return &Storage{DB: db}
 }
 
-func (s *storage) Save(c *calltracker.Call) (*int64, error) {
+func (s *Storage) Save(c *calltracker.Call) (*int64, error) {
 	tx, err := s.DB.Begin()
 	defer func() {
 		err := tx.Commit()
@@ -71,7 +71,7 @@ RETURNING id;
 	return &c.Id, nil
 }
 
-func (s *storage) Dump(c *calltracker.Call) (*string, error) {
+func (s *Storage) Dump(c *calltracker.Call) (*string, error) {
 	aacFilename := strconv.FormatInt(time.Now().UnixNano(), 10) + ".aac"
 
 	rows, err := s.DB.Query("SELECT record FROM calls WHERE id = $1", c.Id)
