@@ -5,13 +5,21 @@ import (
 	"database/sql"
 	log "github.com/sirupsen/logrus"
 	"github.com/vladimir-chernykh/call-tracker-backend/calltracker"
+	"strconv"
+	"time"
+	"io/ioutil"
+	"fmt"
 )
 
-type CallService struct {
+type storage struct {
 	DB *sql.DB
 }
 
-func (s *CallService) Save(c *calltracker.Call) (*int64, error) {
+func New(db *sql.DB) calltracker.CallStorage {
+	return &storage{DB: db}
+}
+
+func (s *storage) Save(c *calltracker.Call) (*int64, error) {
 	tx, err := s.DB.Begin()
 	defer func() {
 		err := tx.Commit()
@@ -61,4 +69,29 @@ RETURNING id;
 	}
 
 	return &c.Id, nil
+}
+
+func (s *storage) Dump(c *calltracker.Call) (*string, error) {
+	aacFilename := strconv.FormatInt(time.Now().UnixNano(), 10) + ".aac"
+
+	rows, err := s.DB.Query("SELECT record FROM calls WHERE id = $1", c.Id)
+	if err != nil {
+		fmt.Println(err)
+		panic(err)
+	}
+	defer rows.Close()
+	var record []byte
+	rows.Next()
+	if err := rows.Scan(&record); err != nil {
+		panic(err)
+	}
+	if err := rows.Err(); err != nil {
+		panic(err)
+	}
+	wErr := ioutil.WriteFile(aacFilename, record, 0644)
+	if wErr != nil {
+		panic(wErr)
+	}
+
+	return &aacFilename, nil
 }

@@ -33,7 +33,7 @@ func ReceiveFileHandler(DB *sql.DB) http.Handler {
 		a := calltracker.Audio{Buffer: Buf.Bytes()}
 		c := calltracker.Call{Phone: p, Audio: a}
 
-		s := postgres.CallService{DB}
+		s := postgres.New(DB)
 		id, err := s.Save(&c)
 		if err != nil {
 			panic(err)

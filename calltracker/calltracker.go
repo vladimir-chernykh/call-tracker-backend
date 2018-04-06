@@ -15,6 +15,7 @@ type Call struct {
 	Audio Audio
 }
 
-type CallService interface {
-	Save(c *Call) (int, error)
+type CallStorage interface {
+	Save(c *Call) (*int64, error)
+	Dump(c *Call) (*string, error)
 }
