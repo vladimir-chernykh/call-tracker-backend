@@ -7,6 +7,9 @@ import (
 	"github.com/vladimir-chernykh/call-tracker-backend/audiosvc"
 	"github.com/stretchr/testify/assert"
 	"strings"
+	"github.com/vladimir-chernykh/call-tracker-backend/calltracker"
+	"database/sql"
+	"github.com/vladimir-chernykh/call-tracker-backend/postgres"
 )
 
 func TestExec(t *testing.T) {
@@ -48,4 +51,30 @@ func TestSend(t *testing.T) {
 	}
 
 	assert.True(t, len(*res) >= 0)
+}
+
+func TestGetStt(t *testing.T) {
+	var DB *sql.DB
+	DB, err := sql.Open("postgres", "user=backend dbname=call_tracker sslmode=disable")
+	if err != nil {
+		panic(err)
+	}
+	defer DB.Close()
+
+	s := postgres.New(DB)
+	p := calltracker.Phone{Number: "+70000000000"}
+	a := calltracker.Audio{Buffer: []byte{}}
+	c := calltracker.Call{Audio: a, Phone: p, RemoteId: "6f16efee6ef54945b6ee44c3dbc4b44b"}
+
+	_, sErr := s.Save(&c)
+	if sErr != nil {
+		panic(sErr)
+	}
+
+	meter := audiosvc.AudioService{Storage: s}
+	meter.GetSTT(c)
+}
+
+func TestGetDuration(t *testing.T) {
+
 }
