@@ -3,7 +3,6 @@ package calltrackersvc
 import (
 	"net/http"
 	"bytes"
-	"fmt"
 	"io"
 
 	"github.com/gorilla/mux"
@@ -37,7 +36,6 @@ func ReceiveFileHandler(DB *sql.DB) http.Handler {
 			rw.WriteHeader(http.StatusUnprocessableEntity)
 			return
 		}
-		fmt.Println("ID: ", id)
 		Buf.Reset()
 		rw.Header().Set("Content-Type", "application/json")
 		rw.WriteHeader(http.StatusCreated)
