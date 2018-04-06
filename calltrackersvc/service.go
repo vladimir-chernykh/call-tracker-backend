@@ -9,6 +9,7 @@ import (
 	"github.com/vladimir-chernykh/call-tracker-backend/calltracker"
 	"database/sql"
 	"github.com/vladimir-chernykh/call-tracker-backend/postgres"
+	"github.com/vladimir-chernykh/call-tracker-backend/audiosvc"
 	"encoding/json"
 )
 
@@ -36,6 +37,10 @@ func ReceiveFileHandler(DB *sql.DB) http.Handler {
 			rw.WriteHeader(http.StatusUnprocessableEntity)
 			return
 		}
+
+		asvc := audiosvc.New(s)
+		go asvc.Process(&c)
+
 		Buf.Reset()
 		rw.Header().Set("Content-Type", "application/json")
 		rw.WriteHeader(http.StatusCreated)
