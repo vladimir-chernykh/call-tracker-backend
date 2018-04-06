@@ -8,7 +8,6 @@ import (
 	"github.com/vladimir-chernykh/call-tracker-backend/calltracker"
 	"io/ioutil"
 	"strings"
-	"fmt"
 )
 
 func TestSave(t *testing.T) {
