@@ -9,5 +9,8 @@ CREATE TABLE metrics (
   updated_at TIMESTAMP NOT NULL
 );
 
+ALTER TABLE metrics
+  ADD CONSTRAINT metrics_name_call_uniq UNIQUE (name, call);
+
 -- +migrate Down
 DROP TABLE metrics;
