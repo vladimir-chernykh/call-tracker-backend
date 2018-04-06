@@ -3,7 +3,6 @@ package calltrackersvc
 import (
 	"net/http"
 	"bytes"
-	"strings"
 	"fmt"
 	"io"
 
@@ -19,13 +18,11 @@ func ReceiveFileHandler(DB *sql.DB) http.Handler {
 		vars := mux.Vars(rr)
 
 		var Buf bytes.Buffer
-		file, header, err := rr.FormFile("audio")
+		file, _, err := rr.FormFile("audio")
 		if err != nil {
 			panic(err)
 		}
 		defer file.Close()
-		name := strings.Split(header.Filename, ".")
-		fmt.Printf("File name %s\n", name[0])
 
 		io.Copy(&Buf, file)
 

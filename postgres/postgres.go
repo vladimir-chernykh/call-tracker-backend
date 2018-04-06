@@ -20,6 +20,7 @@ func New(db *sql.DB) calltracker.CallStorage {
 }
 
 func (s *Storage) Save(c *calltracker.Call) (*int64, error) {
+	log.Info("Save", c.Phone)
 	tx, err := s.DB.Begin()
 	defer func() {
 		err := tx.Commit()
@@ -72,6 +73,7 @@ RETURNING id;
 }
 
 func (s *Storage) Dump(c *calltracker.Call) (*string, error) {
+	log.Info("Save", c.Phone, c.Id)
 	aacFilename := strconv.FormatInt(time.Now().UnixNano(), 10) + ".aac"
 
 	rows, err := s.DB.Query("SELECT record FROM calls WHERE id = $1", c.Id)
@@ -97,6 +99,7 @@ func (s *Storage) Dump(c *calltracker.Call) (*string, error) {
 }
 
 func (s *Storage) SaveMetric(m *calltracker.Metric) (error) {
+	log.Info("SaveMetric", m.Call.Phone, m.Call.Id, m.Data)
 	tx, err := s.DB.Begin()
 	if err != nil {
 		panic(err)
