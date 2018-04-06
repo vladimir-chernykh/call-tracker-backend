@@ -24,7 +24,7 @@ type CallStorage interface {
 type AudioService interface {
 	Process(*Call) (*Call, error)
 	Convert(string) (*string, error)
-	Send([]byte) (string, error)
+	Send(string) (*string, error)
 	GetDuration() (string, error)
 	GetSTT() (string, error)
 }
