@@ -10,9 +10,10 @@ type Audio struct {
 }
 
 type Call struct {
-	Id    int64
-	Phone Phone
-	Audio Audio
+	Id       int64
+	Phone    Phone
+	Audio    Audio
+	RemoteId string
 }
 
 type CallStorage interface {
@@ -22,8 +23,8 @@ type CallStorage interface {
 
 type AudioService interface {
 	Process(*Call) (*Call, error)
-	Convert(*Call) (*Call, error)
-	Send(*Call) (string, error)
+	Convert(string) (*string, error)
+	Send([]byte) (string, error)
 	GetDuration() (string, error)
 	GetSTT() (string, error)
 }
