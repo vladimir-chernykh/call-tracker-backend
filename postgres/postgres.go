@@ -99,7 +99,7 @@ func (s *Storage) Dump(c *calltracker.Call) (*string, error) {
 }
 
 func (s *Storage) SaveMetric(m *calltracker.Metric) (error) {
-	log.Info("SaveMetric", m.Call.Phone, m.Call.Id, m.Data)
+	log.Info("SaveMetric", m.Call.Phone, m.Call.Id)
 	tx, err := s.DB.Begin()
 	if err != nil {
 		panic(err)
@@ -124,4 +124,35 @@ RETURNING id;
 	rs.Close()
 
 	return nil
+}
+
+func (s *Storage) GetMetrics(callId string) ([]byte, error) {
+	log.Info("GetMetrics", callId)
+
+	rows, err := s.DB.Query(`
+SELECT jsonb_object_agg(name, data :: JSON -> 'result') AS metrics
+FROM metrics
+WHERE call = $1
+GROUP BY call;
+`, callId)
+	if err != nil {
+		log.Error(err)
+		panic(err)
+	}
+	defer rows.Close()
+
+	var record []byte
+	if !rows.Next() {
+		return nil, nil
+	}
+	if err := rows.Scan(&record); err != nil {
+		log.Error(err)
+		panic(err)
+	}
+	if err := rows.Err(); err != nil {
+		log.Error(err)
+		panic(err)
+	}
+
+	return record, nil
 }

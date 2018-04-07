@@ -27,6 +27,7 @@ type CallStorage interface {
 	Save(c *Call) (*int64, error)
 	Dump(c *Call) (*string, error)
 	SaveMetric(m *Metric) (error)
+	GetMetrics(string) ([]byte, error)
 }
 
 type AudioService interface {

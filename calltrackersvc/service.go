@@ -11,6 +11,7 @@ import (
 	"github.com/vladimir-chernykh/call-tracker-backend/postgres"
 	"github.com/vladimir-chernykh/call-tracker-backend/audiosvc"
 	"encoding/json"
+	log "github.com/sirupsen/logrus"
 )
 
 func ReceiveFileHandler(DB *sql.DB) http.Handler {
@@ -53,30 +54,18 @@ func GetCallResultsStub(DB *sql.DB) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, rr *http.Request) {
 		vars := mux.Vars(rr)
 
-		if vars["call"] == "10" {
-			rw.Header().Set("Content-Type", "application/json")
-			rw.WriteHeader(http.StatusOK)
-			rw.Write([]byte("{\"stt\":{\"text\":\"Пусть просто такую информацию легче записать голосом чем писать текстом\"},\"duration\":{\"duration\":4.56}}"))
-			return
+		s := postgres.New(DB)
+		out, err := s.GetMetrics(vars["call"])
+		if err != nil {
+			log.Error(err)
+			panic(err)
 		}
-
-		if vars["call"] == "11" {
-			rw.Header().Set("Content-Type", "application/json")
-			rw.WriteHeader(http.StatusOK)
-			rw.Write([]byte("{\"stt\":{\"text\":\"Пусть просто такую информацию легче записать голосом чем писать текстом\"}}"))
-			return
+		if out == nil {
+			out = []byte("{}")
 		}
-
-		if vars["call"] == "12" {
-			rw.Header().Set("Content-Type", "application/json")
-			rw.WriteHeader(http.StatusOK)
-			rw.Write([]byte("{\"duration\":{\"duration\":4.56}}"))
-			return
-		}
-
 		rw.Header().Set("Content-Type", "application/json")
-		rw.Write([]byte("{}"))
-		rw.WriteHeader(http.StatusNotFound)
+		rw.WriteHeader(http.StatusOK)
+		rw.Write(out)
 
 		return
 	})
