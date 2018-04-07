@@ -50,7 +50,7 @@ func ReceiveFileHandler(DB *sql.DB) http.Handler {
 	})
 }
 
-func GetCallResultsStub(DB *sql.DB) http.Handler {
+func GetCallResultsHandler(DB *sql.DB) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, rr *http.Request) {
 		vars := mux.Vars(rr)
 
