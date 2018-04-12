@@ -99,7 +99,7 @@ func (c *AudioService) Send(wav string) (*string, error) {
 	contentType := bodyWriter.FormDataContentType()
 	bodyWriter.Close()
 
-	res, err := http.Post("http://23.105.225.195:3000/content", contentType, bodyBuf)
+	res, err := http.Post("http://processing.ctrack.me:3000/content", contentType, bodyBuf)
 	if err != nil {
 		panic(err)
 	}
@@ -128,7 +128,7 @@ func (c *AudioService) GetSTT(call calltracker.Call) (error) {
 }
 
 func (c *AudioService) getMetric(name string, remoteId string, call calltracker.Call) (error) {
-	res, err := http.PostForm("http://23.105.225.195:3000/"+name, url.Values{"content_id": {remoteId}})
+	res, err := http.PostForm("http://processing.ctrack.me:3000/"+name, url.Values{"content_id": {remoteId}})
 	if err != nil {
 		panic(err)
 	}
