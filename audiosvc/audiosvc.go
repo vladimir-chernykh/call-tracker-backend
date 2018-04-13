@@ -12,6 +12,8 @@ import (
 	"encoding/json"
 	"net/url"
 	"io/ioutil"
+	log "github.com/sirupsen/logrus"
+	"fmt"
 )
 
 type AudioService struct {
@@ -31,6 +33,7 @@ func New(storage calltracker.CallStorage) calltracker.AudioService {
 }
 
 func (c *AudioService) Process(call *calltracker.Call) (error) {
+	log.Info("AudioService.Process: ", call.Id)
 
 	aacFile, err := c.Storage.Dump(call)
 	if err != nil {
@@ -68,6 +71,8 @@ func (c *AudioService) Process(call *calltracker.Call) (error) {
 }
 
 func (c *AudioService) Convert(aacFile string) (*string, error) {
+	log.Info("AudioService.Convert: ", aacFile)
+
 	wavFile := strings.Replace(aacFile, ".aac", ".wav", 1)
 
 	cmd := exec.Command("ffmpeg", "-i", aacFile, wavFile)
@@ -82,6 +87,8 @@ func (c *AudioService) Convert(aacFile string) (*string, error) {
 }
 
 func (c *AudioService) Send(wav string) (*string, error) {
+	log.Info("AudioService.Send: ", wav)
+
 	bodyBuf := &bytes.Buffer{}
 	bodyWriter := multipart.NewWriter(bodyBuf)
 
@@ -117,6 +124,8 @@ func (c *AudioService) Send(wav string) (*string, error) {
 }
 
 func (c *AudioService) GetMetric(name string, remoteId string, call calltracker.Call) (error) {
+	log.Info("AudioService.GetMetric: ", fmt.Sprintf("%s %s %d", name, remoteId, call.Id))
+
 	res, err := http.PostForm("http://processing.ctrack.me:3000/"+name, url.Values{"content_id": {remoteId}})
 	if err != nil {
 		panic(err)

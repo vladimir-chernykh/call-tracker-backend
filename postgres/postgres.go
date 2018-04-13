@@ -127,7 +127,7 @@ RETURNING id;
 }
 
 func (s *Storage) GetMetrics(callId string) ([]byte, error) {
-	log.Info("GetMetrics", callId)
+	log.Info("GetMetrics ", callId)
 
 	rows, err := s.DB.Query(`
 SELECT jsonb_object_agg(name, data :: JSON -> 'result') AS metrics
