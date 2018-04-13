@@ -127,7 +127,7 @@ RETURNING id;
 }
 
 func (s *Storage) GetMetrics(callId string) ([]byte, error) {
-	log.Info("GetMetrics", callId)
+	log.Info("GetMetrics ", callId)
 
 	rows, err := s.DB.Query(`
 SELECT jsonb_object_agg(name, data :: JSON -> 'result') AS metrics
@@ -155,4 +155,30 @@ GROUP BY call;
 	}
 
 	return record, nil
+}
+
+func (s *Storage) GetMetricNames() ([]string, error) {
+	log.Info("GetMetricNames")
+
+	rows, err := s.DB.Query(`SELECT name FROM metric_names;`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	out := []string{}
+	for rows.Next() {
+		var name string
+		if err := rows.Scan(&name); err != nil {
+			return nil, err
+		}
+
+		out = append(out, name)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return out, nil
 }

@@ -28,12 +28,12 @@ type CallStorage interface {
 	Dump(c *Call) (*string, error)
 	SaveMetric(m *Metric) (error)
 	GetMetrics(string) ([]byte, error)
+	GetMetricNames() ([]string, error)
 }
 
 type AudioService interface {
 	Process(*Call) (error)
 	Convert(string) (*string, error)
 	Send(string) (*string, error)
-	GetDuration(Call) (error)
-	GetSTT(Call) (error)
+	GetMetric(string, string, Call) (error)
 }

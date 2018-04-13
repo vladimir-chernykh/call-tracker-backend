@@ -72,7 +72,10 @@ func TestGetStt(t *testing.T) {
 	}
 
 	meter := audiosvc.AudioService{Storage: s}
-	meter.GetSTT(c)
+	mErr := meter.GetMetric("stt", c.RemoteId, c)
+	if mErr != nil {
+		panic(mErr)
+	}
 }
 
 func TestGetDuration(t *testing.T) {

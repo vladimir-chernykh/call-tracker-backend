@@ -12,6 +12,8 @@ import (
 	"encoding/json"
 	"net/url"
 	"io/ioutil"
+	log "github.com/sirupsen/logrus"
+	"fmt"
 )
 
 type AudioService struct {
@@ -31,6 +33,7 @@ func New(storage calltracker.CallStorage) calltracker.AudioService {
 }
 
 func (c *AudioService) Process(call *calltracker.Call) (error) {
+	log.Info("AudioService.Process: ", call.Id)
 
 	aacFile, err := c.Storage.Dump(call)
 	if err != nil {
@@ -56,13 +59,23 @@ func (c *AudioService) Process(call *calltracker.Call) (error) {
 		panic(rErr)
 	}
 
-	go c.GetDuration(*call)
-	go c.GetSTT(*call)
+	metrics, err := c.Storage.GetMetricNames()
+	if err != nil {
+		return err
+	}
+	for _, metric := range metrics {
+		mErr := c.GetMetric(metric, *remoteId, *call)
+		if mErr != nil {
+			panic(mErr)
+		}
+	}
 
 	return nil
 }
 
 func (c *AudioService) Convert(aacFile string) (*string, error) {
+	log.Info("AudioService.Convert: ", aacFile)
+
 	wavFile := strings.Replace(aacFile, ".aac", ".wav", 1)
 
 	cmd := exec.Command("ffmpeg", "-i", aacFile, wavFile)
@@ -77,6 +90,8 @@ func (c *AudioService) Convert(aacFile string) (*string, error) {
 }
 
 func (c *AudioService) Send(wav string) (*string, error) {
+	log.Info("AudioService.Send: ", wav)
+
 	bodyBuf := &bytes.Buffer{}
 	bodyWriter := multipart.NewWriter(bodyBuf)
 
@@ -111,23 +126,9 @@ func (c *AudioService) Send(wav string) (*string, error) {
 	return &data.Result.ContentId, nil
 }
 
-func (c *AudioService) GetDuration(call calltracker.Call) (error) {
-	err := c.getMetric("duration", call.RemoteId, call)
-	if err != nil {
-		panic(err)
-	}
-	return nil
-}
+func (c *AudioService) GetMetric(name string, remoteId string, call calltracker.Call) (error) {
+	log.Info("AudioService.GetMetric: ", fmt.Sprintf("%s %s %d", name, remoteId, call.Id))
 
-func (c *AudioService) GetSTT(call calltracker.Call) (error) {
-	err := c.getMetric("stt", call.RemoteId, call)
-	if err != nil {
-		panic(err)
-	}
-	return nil
-}
-
-func (c *AudioService) getMetric(name string, remoteId string, call calltracker.Call) (error) {
 	res, err := http.PostForm("http://processing.ctrack.me:3000/"+name, url.Values{"content_id": {remoteId}})
 	if err != nil {
 		panic(err)
