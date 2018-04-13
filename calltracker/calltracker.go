@@ -34,6 +34,5 @@ type AudioService interface {
 	Process(*Call) (error)
 	Convert(string) (*string, error)
 	Send(string) (*string, error)
-	GetDuration(Call) (error)
-	GetSTT(Call) (error)
+	GetMetric(string, string, Call) (error)
 }

@@ -56,8 +56,13 @@ func (c *AudioService) Process(call *calltracker.Call) (error) {
 		panic(rErr)
 	}
 
-	go c.GetDuration(*call)
-	go c.GetSTT(*call)
+	metrics := []string{"stt", "duration"}
+	for _, metric := range metrics {
+		mErr := c.GetMetric(metric, *remoteId, *call)
+		if mErr != nil {
+			panic(mErr)
+		}
+	}
 
 	return nil
 }
@@ -111,23 +116,7 @@ func (c *AudioService) Send(wav string) (*string, error) {
 	return &data.Result.ContentId, nil
 }
 
-func (c *AudioService) GetDuration(call calltracker.Call) (error) {
-	err := c.getMetric("duration", call.RemoteId, call)
-	if err != nil {
-		panic(err)
-	}
-	return nil
-}
-
-func (c *AudioService) GetSTT(call calltracker.Call) (error) {
-	err := c.getMetric("stt", call.RemoteId, call)
-	if err != nil {
-		panic(err)
-	}
-	return nil
-}
-
-func (c *AudioService) getMetric(name string, remoteId string, call calltracker.Call) (error) {
+func (c *AudioService) GetMetric(name string, remoteId string, call calltracker.Call) (error) {
 	res, err := http.PostForm("http://processing.ctrack.me:3000/"+name, url.Values{"content_id": {remoteId}})
 	if err != nil {
 		panic(err)
