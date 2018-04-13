@@ -59,7 +59,10 @@ func (c *AudioService) Process(call *calltracker.Call) (error) {
 		panic(rErr)
 	}
 
-	metrics := []string{"stt", "duration"}
+	metrics, err := c.Storage.GetMetricNames()
+	if err != nil {
+		return err
+	}
 	for _, metric := range metrics {
 		mErr := c.GetMetric(metric, *remoteId, *call)
 		if mErr != nil {
